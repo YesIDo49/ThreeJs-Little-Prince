@@ -49,6 +49,16 @@ export function initScene() {
     character.position.set(0, 0, 2);
     scene.add(character);
 
+    const characterTexts = [
+        { name: "Le Petit Prince", quote: "On ne voit bien qu’avec le cœur. L’essentiel est invisible pour les yeux." },
+        { name: "La Rose", quote: "Tu deviens responsable pour toujours de ce que tu as apprivoisé." },
+        { name: "Le Pilote", quote: "Toutes les grandes personnes ont d’abord été des enfants. (Mais peu d’entre elles s’en souviennent.)" },
+        { name: "Le Mouton", quote: "S’il te plaît… dessine-moi un mouton !" },
+        { name: "Le Renard", quote: "On ne connaît que les choses que l’on apprivoise." },
+        { name: "Le Serpent", quote: "Je puis t’aider à retourner chez toi..." }
+    ];
+
+
     // Tourner la lune au clic
     window.addEventListener('click', () => {
         gsap.to(moon.rotation, { z: moon.rotation.z + THREE.MathUtils.degToRad(45), duration: 1, ease: "power2.inOut" });
@@ -71,4 +81,20 @@ export function initScene() {
         renderer.render(scene, camera);
     }
     animate();
+    updateCharacterText();
+
+    function updateCharacterText() {
+        document.getElementById('character-name').textContent = characterTexts[currentTextureIndex].name;
+        document.getElementById('character-quote').textContent = characterTexts[currentTextureIndex].quote;
+    }
+
+
+    window.addEventListener('click', () => {
+
+        gsap.to("#character-info", { opacity: 0, duration: 0.3, onComplete: () => {
+                updateCharacterText();
+                gsap.to("#character-info", { opacity: 1, duration: 0.3 });
+            }});
+    });
+
 }
