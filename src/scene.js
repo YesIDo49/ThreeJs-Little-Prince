@@ -32,9 +32,38 @@ export function initScene() {
 
     camera.position.z = 5;
 
+    const characterTextures = [
+        textureLoader.load('/public/character1.png'),
+        textureLoader.load('/public/character2.png'),
+        textureLoader.load('/public/character3.png'),
+        textureLoader.load('/public/character4.png'),
+        textureLoader.load('/public/character5.png'),
+        textureLoader.load('/public/character6.png'),
+    ];
+
+    let currentTextureIndex = 0;
+
+    const characterMaterial = new THREE.SpriteMaterial({ map: characterTextures[currentTextureIndex] });
+    const character = new THREE.Sprite(characterMaterial);
+    character.scale.set(1, 1, 1);
+    character.position.set(0, 0, 2);
+    scene.add(character);
+
     // Tourner la lune au clic
     window.addEventListener('click', () => {
         gsap.to(moon.rotation, { z: moon.rotation.z + THREE.MathUtils.degToRad(45), duration: 1, ease: "power2.inOut" });
+
+        gsap.to(character.material, {
+            opacity: 0,
+            duration: 0.3,
+            onComplete: () => {
+                currentTextureIndex = (currentTextureIndex + 1) % characterTextures.length;
+                character.material.map = characterTextures[currentTextureIndex];
+                character.material.needsUpdate = true;
+
+                gsap.to(character.material, { opacity: 1, duration: 1.25, ease: "power2.inOut" });
+            }
+        });
     });
 
     function animate() {
