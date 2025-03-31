@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import gsap from 'gsap';
 
 export function initScene() {
     const scene = new THREE.Scene();
@@ -20,9 +21,9 @@ export function initScene() {
         normalMap: normalMap,
     });
 
-    const geometry = new THREE.SphereGeometry(2, 64, 64);
+    const geometry = new THREE.SphereGeometry(3, 64, 64);
     const moon = new THREE.Mesh(geometry, material);
-    moon.position.y = -2;
+    moon.position.y = -3;
     scene.add(moon);
 
     const light = new THREE.DirectionalLight(0xffffff, 1);
@@ -30,6 +31,11 @@ export function initScene() {
     scene.add(light);
 
     camera.position.z = 5;
+
+    // Tourner la lune au clic
+    window.addEventListener('click', () => {
+        gsap.to(moon.rotation, { z: moon.rotation.z + THREE.MathUtils.degToRad(45), duration: 1, ease: "power2.inOut" });
+    });
 
     function animate() {
         requestAnimationFrame(animate);
