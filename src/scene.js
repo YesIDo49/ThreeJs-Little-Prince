@@ -81,10 +81,6 @@ export function initScene() {
         });
     });
 
-    function animate() {
-        requestAnimationFrame(animate);
-        renderer.render(scene, camera);
-    }
     updateCharacterText();
 
     function updateCharacterText() {
@@ -187,7 +183,29 @@ export function initScene() {
 
     startShootingStars();
 
+    const texturePlanete1 = textureLoader.load('/public/moon_001_COLOR.jpg');
+    const texturePlanete2 = textureLoader.load('/public/moon_001_COLOR.jpg');
 
+    const geometriePlanete1 = new THREE.SphereGeometry(3, 32, 32);
+    const materiauPlanete1 = new THREE.MeshStandardMaterial({ map: texturePlanete1 });
+    const planete1 = new THREE.Mesh(geometriePlanete1, materiauPlanete1);
+    planete1.position.set(-8, 5, -20);
+    scene.add(planete1);
+
+    const geometriePlanete2 = new THREE.SphereGeometry(4, 32, 32);
+    const materiauPlanete2 = new THREE.MeshStandardMaterial({ map: texturePlanete2 });
+    const planete2 = new THREE.Mesh(geometriePlanete2, materiauPlanete2);
+    planete2.position.set(15, 4, -40);
+    scene.add(planete2);
+
+
+    function animate() {
+        requestAnimationFrame(animate);
+
+        planete1.rotation.y += 0.005;
+        planete2.rotation.x += 0.05;
+        renderer.render(scene, camera);
+    }
 
     animate();
 
