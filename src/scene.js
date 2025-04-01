@@ -7,7 +7,7 @@ export function initScene() {
     const renderer = new THREE.WebGLRenderer({ antialias: true });
 
     const loader = new THREE.TextureLoader();
-    loader.load('public/space-bg.jpg', function(texture) {
+    loader.load('public/space-bg2.jpg', function(texture) {
         scene.background = texture;
     });
 
@@ -16,7 +16,7 @@ export function initScene() {
 
     const textureLoader = new THREE.TextureLoader();
     const colorMap = textureLoader.load('/public/moon_001_COLOR.jpg');
-    const displacementMap = textureLoader.load('/public/moon_001_DISP.p,g');
+    const displacementMap = textureLoader.load('/public/moon_001_DISP.png');
     const normalMap = textureLoader.load('/public/moon_001_NORM.jpg');
 
     const material = new THREE.MeshStandardMaterial({
@@ -120,12 +120,102 @@ export function initScene() {
         scene.add(stars);
 
         function animateStars() {
-            stars.rotation.y += 0.0005;
+            stars.rotation.y += 0.0002;
             requestAnimationFrame(animateStars);
         }
         animateStars();
     }
 
     createStars();
+    function createShootingStar() {
+        const starGeometry = new THREE.SphereGeometry(0.2, 8, 8);
+        const starMaterial = new THREE.MeshBasicMaterial({ color: 0xffd700, transparent: true });
+        const shootingStar = new THREE.Mesh(starGeometry, starMaterial);
+
+        const startX = (Math.random() - 0.5) * 200;
+        const startY = Math.random() * 100 + 50;
+        shootingStar.position.set(startX, startY, -50);
+        scene.add(shootingStar);
+
+        // Traînée
+        const trailLength = 30;
+        const trailGeometry = new THREE.BufferGeometry();
+        const trailPositions = new Float32Array(trailLength * 3);
+        const trailAlphas = new Float32Array(trailLength);
+
+        for (let i = 0; i < trailLength; i++) {
+            trailAlphas[i] = 1 - i / trailLength;
+        }
+
+        trailGeometry.setAttribute("position", new THREE.BufferAttribute(trailPositions, 3));
+        trailGeometry.setAttribute("alpha", new THREE.BufferAttribute(trailAlphas, 1));
+
+        const trailMaterial = new THREE.ShaderMaterial({
+            uniforms: { opacity: { value: 1.0 } },
+            vertexShader: `
+            attribute float alpha;
+            varying float vAlpha;
+            void main() {
+                vAlpha = alpha;
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+        `,
+            fragmentShader: `
+            uniform float opacity;
+            varying float vAlpha;
+            void main() {
+                gl_FragColor = vec4(1.0, 0.9, 0.5, vAlpha * opacity);
+            }
+        `,
+            transparent: true
+        });
+
+        const trail = new THREE.Line(trailGeometry, trailMaterial);
+
+        setTimeout(() => {
+            scene.add(trail);
+
+            gsap.to(shootingStar.position, {
+                x: startX + Math.random() * 50 + 50,
+                y: startY - 130,
+                z: -50 + Math.random() * 20,
+                duration: 3,
+                ease: "power1.out",
+                onUpdate: () => {
+                    for (let i = trailLength - 1; i > 0; i--) {
+                        trailPositions[i * 3] = trailPositions[(i - 1) * 3];
+                        trailPositions[i * 3 + 1] = trailPositions[(i - 1) * 3 + 1];
+                        trailPositions[i * 3 + 2] = trailPositions[(i - 1) * 3 + 2];
+                    }
+                    trailPositions[0] = shootingStar.position.x;
+                    trailPositions[1] = shootingStar.position.y;
+                    trailPositions[2] = shootingStar.position.z;
+                    console.log(trailPositions[0]);
+
+
+                    trailGeometry.attributes.position.needsUpdate = true;
+                },
+                onComplete: () => {
+                    scene.remove(shootingStar);
+                    fadeOutTrail();
+                }
+            });
+
+        }, 10);
+
+        function fadeOutTrail() {
+            gsap.to(trailMaterial.uniforms.opacity, { value: 0, duration: 1, onComplete: () => scene.remove(trail) });
+        }
+    }
+
+    function startShootingStars() {
+        setInterval(() => {
+            for (let i = 0; i < Math.floor(Math.random() * 3) + 1; i++) {
+                setTimeout(() => createShootingStar(), Math.random() * 200);
+            }
+        }, 500);
+    }
+
+    startShootingStars();
 
 }
