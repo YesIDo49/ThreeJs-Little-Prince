@@ -85,7 +85,6 @@ export function initScene() {
         requestAnimationFrame(animate);
         renderer.render(scene, camera);
     }
-    animate();
     updateCharacterText();
 
     function updateCharacterText() {
@@ -127,95 +126,61 @@ export function initScene() {
     }
 
     createStars();
+
     function createShootingStar() {
-        const starGeometry = new THREE.SphereGeometry(0.2, 8, 8);
-        const starMaterial = new THREE.MeshBasicMaterial({ color: 0xffd700, transparent: true });
-        const shootingStar = new THREE.Mesh(starGeometry, starMaterial);
-
         const startX = (Math.random() - 0.5) * 200;
-        const startY = Math.random() * 100 + 50;
-        shootingStar.position.set(startX, startY, -50);
-        scene.add(shootingStar);
+        const startY = Math.random() * 100 + 100;
+        const startZ = -50;
 
-        // Traînée
-        const trailLength = 30;
-        const trailGeometry = new THREE.BufferGeometry();
-        const trailPositions = new Float32Array(trailLength * 3);
-        const trailAlphas = new Float32Array(trailLength);
+        const endX = startX;
+        const endY = startY - 50;
+        const endZ = -50;
 
-        for (let i = 0; i < trailLength; i++) {
-            trailAlphas[i] = 1 - i / trailLength;
-        }
+        const points = [new THREE.Vector3(startX, startY, startZ), new THREE.Vector3(endX, endY, endZ)];
 
-        trailGeometry.setAttribute("position", new THREE.BufferAttribute(trailPositions, 3));
-        trailGeometry.setAttribute("alpha", new THREE.BufferAttribute(trailAlphas, 1));
-
-        const trailMaterial = new THREE.ShaderMaterial({
-            uniforms: { opacity: { value: 1.0 } },
+        const material = new THREE.ShaderMaterial({
             vertexShader: `
-            attribute float alpha;
-            varying float vAlpha;
+            varying float vOpacity;
             void main() {
-                vAlpha = alpha;
                 gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                vOpacity = (position.y - ${startY}) / (${endY} - ${startY}); // Transparence de haut en bas
             }
         `,
             fragmentShader: `
-            uniform float opacity;
-            varying float vAlpha;
+            varying float vOpacity;
             void main() {
-                gl_FragColor = vec4(1.0, 0.9, 0.5, vAlpha * opacity);
+                gl_FragColor = vec4(1.0, 241.0/255.0, 161.0/255.0, vOpacity);  // Couleur #FFF1A1 avec dégradé d'opacité
             }
         `,
-            transparent: true
+            transparent: true,
+            opacity: 0.8,
         });
 
-        const trail = new THREE.Line(trailGeometry, trailMaterial);
+        const geometry = new THREE.BufferGeometry().setFromPoints(points);
+        const ShootingStar = new THREE.Line(geometry, material);
+        scene.add(ShootingStar);
 
-        setTimeout(() => {
-            scene.add(trail);
-
-            gsap.to(shootingStar.position, {
-                x: startX + Math.random() * 50 + 50,
-                y: startY - 130,
-                z: -50 + Math.random() * 20,
-                duration: 3,
-                ease: "power1.out",
-                onUpdate: () => {
-                    for (let i = trailLength - 1; i > 0; i--) {
-                        trailPositions[i * 3] = trailPositions[(i - 1) * 3];
-                        trailPositions[i * 3 + 1] = trailPositions[(i - 1) * 3 + 1];
-                        trailPositions[i * 3 + 2] = trailPositions[(i - 1) * 3 + 2];
-                    }
-                    trailPositions[0] = shootingStar.position.x;
-                    trailPositions[1] = shootingStar.position.y;
-                    trailPositions[2] = shootingStar.position.z;
-                    console.log(trailPositions[0]);
-
-
-                    trailGeometry.attributes.position.needsUpdate = true;
-                },
-                onComplete: () => {
-                    scene.remove(shootingStar);
-                    fadeOutTrail();
-                }
-            });
-
-        }, 10);
-
-        function fadeOutTrail() {
-            gsap.to(trailMaterial.uniforms.opacity, { value: 0, duration: 1, onComplete: () => scene.remove(trail) });
-        }
+        gsap.to(ShootingStar.position, {
+            duration: 3,
+            y: -200,
+            ease: "power1.out",
+            onComplete: () => {
+                ShootingStar.position.y = Math.random() * 100 + 100;
+            }
+        });
     }
 
-    function startShootingStars() {
+    function startShootingStar() {
         setInterval(() => {
-            for (let i = 0; i < Math.floor(Math.random() * 3) + 1; i++) {
+            for (let i = 0; i < Math.floor(Math.random() * 5) + 1; i++) {
                 setTimeout(() => createShootingStar(), Math.random() * 200);
             }
-        }, 500);
+        }, 200);
     }
 
-    startShootingStars();
+    startShootingStar();
+
+
+    animate();
 
 }
