@@ -203,7 +203,7 @@ export function initScene() {
         requestAnimationFrame(animate);
 
         planete1.rotation.y += 0.005;
-        planete2.rotation.x += 0.05;
+        planete2.rotation.x += 0.008;
         renderer.render(scene, camera);
     }
 
