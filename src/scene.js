@@ -128,57 +128,65 @@ export function initScene() {
     createStars();
 
     function createShootingStar() {
-        const startX = (Math.random() - 0.5) * 200;
-        const startY = Math.random() * 100 + 100;
+        const startX = (Math.random() - 0.7) * 200;
+        const startY = Math.random() * 100 + 50;
         const startZ = -50;
 
-        const endX = startX;
+        const endX = startX + 20;
         const endY = startY - 50;
         const endZ = -50;
 
         const points = [new THREE.Vector3(startX, startY, startZ), new THREE.Vector3(endX, endY, endZ)];
+        const geometry = new THREE.BufferGeometry().setFromPoints(points);
 
         const material = new THREE.ShaderMaterial({
             vertexShader: `
             varying float vOpacity;
             void main() {
                 gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-                vOpacity = (position.y - ${startY}) / (${endY} - ${startY}); // Transparence de haut en bas
+                vOpacity = (position.y - ${startY}) / (${endY} - ${startY});
             }
         `,
             fragmentShader: `
             varying float vOpacity;
             void main() {
-                gl_FragColor = vec4(1.0, 241.0/255.0, 161.0/255.0, vOpacity);  // Couleur #FFF1A1 avec dégradé d'opacité
+                gl_FragColor = vec4(1.0, 241.0/255.0, 161.0/255.0, vOpacity);
             }
         `,
             transparent: true,
-            opacity: 0.8,
         });
 
-        const geometry = new THREE.BufferGeometry().setFromPoints(points);
-        const ShootingStar = new THREE.Line(geometry, material);
-        scene.add(ShootingStar);
+        const shootingStar = new THREE.Line(geometry, material);
+        scene.add(shootingStar);
 
-        gsap.to(ShootingStar.position, {
-            duration: 3,
-            y: -200,
+        gsap.to(points, {
+            duration: 2.5,
+            onUpdate: () => {
+                points[0].x += 0.4;
+                points[0].y -= 1;
+
+                points[1].x += 0.4;
+                points[1].y -= 1;
+
+                geometry.setFromPoints(points);
+            },
             ease: "power1.out",
             onComplete: () => {
-                ShootingStar.position.y = Math.random() * 100 + 100;
+                scene.remove(shootingStar);
             }
         });
     }
 
-    function startShootingStar() {
+    function startShootingStars() {
         setInterval(() => {
             for (let i = 0; i < Math.floor(Math.random() * 5) + 1; i++) {
                 setTimeout(() => createShootingStar(), Math.random() * 200);
             }
-        }, 200);
+        }, 500);
     }
 
-    startShootingStar();
+    startShootingStars();
+
 
 
     animate();
