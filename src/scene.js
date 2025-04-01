@@ -6,6 +6,11 @@ export function initScene() {
     const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true });
 
+    const loader = new THREE.TextureLoader();
+    loader.load('public/space-bg.jpg', function(texture) {
+        scene.background = texture;
+    });
+
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
 
@@ -21,9 +26,9 @@ export function initScene() {
         normalMap: normalMap,
     });
 
-    const geometry = new THREE.SphereGeometry(3, 64, 64);
+    const geometry = new THREE.SphereGeometry(2, 64, 64);
     const moon = new THREE.Mesh(geometry, material);
-    moon.position.y = -3;
+    moon.position.y = -2.5;
     scene.add(moon);
 
     const light = new THREE.DirectionalLight(0xffffff, 1);
@@ -45,8 +50,8 @@ export function initScene() {
 
     const characterMaterial = new THREE.SpriteMaterial({ map: characterTextures[currentTextureIndex] });
     const character = new THREE.Sprite(characterMaterial);
-    character.scale.set(1, 1, 1);
-    character.position.set(0, 0, 2);
+    character.scale.set(0.5, 0.5, 0.5);
+    character.position.set(0, -0.25, 2);
     scene.add(character);
 
     const characterTexts = [
@@ -96,5 +101,31 @@ export function initScene() {
                 gsap.to("#character-info", { opacity: 1, duration: 0.3 });
             }});
     });
+
+    function createStars() {
+        const starGeometry = new THREE.BufferGeometry();
+        const starVertices = [];
+
+        for (let i = 0; i < 5000; i++) { // Nombre d’étoiles
+            const x = (Math.random() - 0.5) * 500;
+            const y = (Math.random() - 0.5) * 500;
+            const z = (Math.random() - 0.5) * 500;
+            starVertices.push(x, y, z);
+        }
+
+        starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+        const starMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 1 });
+
+        const stars = new THREE.Points(starGeometry, starMaterial);
+        scene.add(stars);
+
+        function animateStars() {
+            stars.rotation.y += 0.0005;
+            requestAnimationFrame(animateStars);
+        }
+        animateStars();
+    }
+
+    createStars();
 
 }
