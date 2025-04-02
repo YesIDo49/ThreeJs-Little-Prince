@@ -230,6 +230,7 @@ function FallingStars({ initialPosition, speed = 1, size = 0.2, angle = Math.PI/
 function Planet({ texture, position, size, rotationSpeed, rotationDirection }) {
     const planetTexture = useLoader(TextureLoader, texture);
     const planetRef = useRef();
+    const [hovered, setHovered] = useState(false);
 
     useFrame(() => {
         if (planetRef.current) {
@@ -237,8 +238,22 @@ function Planet({ texture, position, size, rotationSpeed, rotationDirection }) {
         }
     });
 
+    const handleHover = (hover) => {
+        gsap.to(planetRef.current.scale, {
+            x: hover ? 1.1 : 1,
+            y: hover ? 1.1 : 1,
+            z: hover ? 1.1 : 1,
+            duration: 0.3,
+            ease: "power2.out",
+        });
+    };
+
     return (
-        <mesh ref={planetRef} position={position}>
+        <mesh ref={planetRef}
+              position={position}
+              onPointerOver={() => handleHover(true)}
+              onPointerOut={() => handleHover(false)}
+        >
             <sphereGeometry args={[size, 32, 32]} />
             <meshStandardMaterial map={planetTexture} />
         </mesh>
