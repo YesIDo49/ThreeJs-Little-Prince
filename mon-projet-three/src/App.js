@@ -370,16 +370,23 @@ export default function App() {
         const splitText = (element) => {
             const text = element.textContent;
             element.innerHTML = '';
-            text.split('').forEach(char => {
-                const span = document.createElement('span');
-                span.textContent = char;
-                span.style.opacity = 0;
-                span.style.display = 'inline-block';
-                span.style.filter = 'blur(6px)';
-                if (char === ' ') {
-                    span.style.marginRight = '0.25em';
+            const words = text.split(' ');
+            words.forEach((word, index) => {
+                const wordSpan = document.createElement('span');
+                wordSpan.style.display = 'inline';
+                wordSpan.style.whiteSpace = 'nowrap';
+                word.split('').forEach(char => {
+                    const charSpan = document.createElement('span');
+                    charSpan.textContent = char;
+                    charSpan.style.opacity = 0;
+                    charSpan.style.display = 'inline-block';
+                    charSpan.style.filter = 'blur(6px)';
+                    wordSpan.appendChild(charSpan);
+                });
+                element.appendChild(wordSpan);
+                if (index < words.length - 1) {
+                    element.appendChild(document.createTextNode(' '));
                 }
-                element.appendChild(span);
             });
         };
 
@@ -394,7 +401,7 @@ export default function App() {
         timelineRef.current = gsap.timeline();
 
         timelineRef.current
-            .to(nameElement.querySelectorAll('span'), {
+            .to(nameElement.querySelectorAll('span span'), {
                 opacity: 1,
                 filter: 'blur(0px)',
                 duration: 0.3,
@@ -402,7 +409,7 @@ export default function App() {
                 ease: 'power2.out',
                 delay: 0.2,
             })
-            .to(descriptionElement.querySelectorAll('span'), {
+            .to(descriptionElement.querySelectorAll('span span'), {
                 opacity: 1,
                 filter: 'blur(0px)',
                 duration: 0.3,
@@ -410,7 +417,7 @@ export default function App() {
                 ease: 'power2.out',
                 delay: 0.2,
             }, '-=0.8')
-            .to(quoteElement.querySelectorAll('span'), {
+            .to(quoteElement.querySelectorAll('span span'), {
                 opacity: 1,
                 filter: 'blur(0px)',
                 duration: 0.3,
