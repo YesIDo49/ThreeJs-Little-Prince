@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import React, { useRef, useState } from "react";
+import React, {useEffect, useRef, useState} from "react";
 import { Canvas, useFrame, useLoader } from "@react-three/fiber";
 import { Trail, OrbitControls, Stars } from '@react-three/drei'
 import { EffectComposer, Bloom } from '@react-three/postprocessing'
@@ -82,6 +82,150 @@ function ShootingStar() {
     );
 }
 
+// function FallingStar() {
+//     const ref = useRef();
+//     const [position, setPosition] = useState({ x: 0, y: 0 });
+//     const [speed, setSpeed] = useState({ x: 0, y: 0 });
+//     const [visible, setVisible] = useState(false);
+//
+//     const resetStar = () => {
+//         setPosition({ x: Math.random() * 20 - 50, y: 40 });
+//         setSpeed({ x: Math.random() * 10 + 15, y: Math.random() * 10 + 15 });
+//         setVisible(true);
+//     };
+//
+//     useEffect(() => {
+//         setTimeout(resetStar, Math.random() * 3000);
+//     }, []);
+//
+//     useFrame(({ clock }) => {
+//         if (!ref.current || !visible) return;
+//
+//         const t = clock.getElapsedTime() % 5;
+//         const x = position.x + speed.x * t;
+//         const y = position.y - speed.y * t;
+//
+//         ref.current.position.set(x, y, -30);
+//
+//         if (y < -40) {
+//             setTimeout(resetStar, Math.random() * 3000 + 1000);
+//         }
+//     });
+//
+//     return visible ? (
+//         <Trail width={3} length={5} color={new THREE.Color(1, 1, 10)} attenuation={(t) => t * t}>
+//             <mesh ref={ref} position={[position.x, position.y, -30]}>
+//                 <sphereGeometry args={[0.2]} />
+//                 <meshBasicMaterial color={[10, 1, 10]} toneMapped={false} />
+//             </mesh>
+//         </Trail>
+//     ) : null;
+// }
+//
+// function FallingStars({ count = 5 }) {
+//     return (
+//         <>
+//             {Array.from({ length: count }).map((_, i) => (
+//                 <FallingStar key={i} />
+//             ))}
+//         </>
+//     );
+// }
+
+
+function FallingStarsRain({ count = 20 }) {
+    const stars = useMemo(() => {
+        return Array.from({ length: count }, () => {
+            const angleVariation = (Math.random() - 0.5) * 0.5;
+            return {
+                position: [
+                    -100 + Math.random() * 10,
+                    50 + Math.random() * 20,
+                    -30 - Math.random() * 20
+                ],
+                speed: 3.5 + Math.random() * 4,
+                size: 0.2 + Math.random() * 0.3,
+                angle: Math.PI/4 + angleVariation
+            };
+        });
+    }, [count]);
+
+    return (
+        <>
+            {stars.map((star, index) => (
+                <FallingStars
+                    key={index}
+                    initialPosition={star.position}
+                    speed={star.speed}
+                    size={star.size}
+                    angle={star.angle}
+                />
+            ))}
+        </>
+    );
+}
+
+function FallingStars({ initialPosition, speed = 1, size = 0.2, angle = Math.PI/2 }) {
+    const ref = useRef();
+    const trailRef = useRef();
+    const startTime = useRef(0);
+    const [hide, setHide] = useState(false);
+
+    useFrame((state) => {
+        if (startTime.current === 0) {
+            startTime.current = state.clock.getElapsedTime();
+        }
+
+        const elapsed = state.clock.getElapsedTime() - startTime.current;
+
+        const x = initialPosition[0] + elapsed * speed * Math.cos(angle) * 2;
+        const y = initialPosition[1] - elapsed * speed * (Math.sin(angle) * 1.5);
+        const z = initialPosition[2];
+
+        ref.current.position.set(x, y, z);
+
+        if (y < 40 && hide) {
+            setHide(false);
+        }
+
+        if (x > 100 || y < -50) {
+            setHide(true);
+
+            setTimeout(() => {
+                startTime.current = state.clock.getElapsedTime();
+                ref.current.position.set(
+                    initialPosition[0] - 5 + Math.random() * 10,
+                    initialPosition[1] + Math.random() * 10,
+                    initialPosition[2]
+                );
+                // setTimeout(() => {
+                //     setHide(false);
+                // }, 1750);
+            }, 50);
+
+
+        }
+    });
+
+    return (
+        <Trail
+            ref={trailRef}
+            width={size * 12}
+            length={5}
+            color={new THREE.Color(2, 1, 10)}
+            attenuation={(t) => hide ? 0 : t * t}
+        >
+            <mesh ref={ref}>
+                <sphereGeometry args={[size]} />
+                <meshBasicMaterial
+                    color={[10, 1, 10]}
+                    toneMapped={false}
+                    opacity={0.8}
+                />
+            </mesh>
+        </Trail>
+    );
+}
 
 function Planet({ texture, position, size, rotationSpeed, rotationDirection }) {
     const planetTexture = useLoader(TextureLoader, texture);
@@ -142,8 +286,9 @@ export default function App() {
             <color attach="background" args={['black']} />
             <ambientLight intensity={1} />
             <ShootingStar />
+              <FallingStarsRain count={10} />
               <RotatingStars count={2000} speed={0.01} />
-            {/*<OrbitControls />*/}
+            <OrbitControls />
             <EffectComposer>
               <Bloom mipmapBlur luminanceThreshold={1} />
             </EffectComposer>
