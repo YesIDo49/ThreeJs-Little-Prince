@@ -19,12 +19,36 @@ const characterTextures = [
 ];
 
 const characterTexts = [
-    { name: "Le Petit Prince", quote: "On ne voit bien qu’avec le cœur." },
-    { name: "La Rose", quote: "Tu deviens responsable pour toujours..." },
-    { name: "Le Pilote", quote: "Toutes les grandes personnes ont été enfants." },
-    { name: "Le Mouton", quote: "S’il te plaît… dessine-moi un mouton !" },
-    { name: "Le Renard", quote: "On ne connaît que les choses que l’on apprivoise." },
-    { name: "Le Serpent", quote: "Je puis t’aider à retourner chez toi..." },
+    {
+        name: "Le Petit Prince",
+        description: "Un jeune garçon venu d’un petit astéroïde, le B-612. Curieux et rêveur, il pose des questions profondes sur l’amitié, l’amour et le sens de la vie. En voyageant de planète en planète, il découvre les travers des adultes et cherche à comprendre ce qui est vraiment important.",
+        quote: "On ne voit bien qu’avec le cœur."
+    },
+    {
+        name: "La Rose",
+        description: "La Rose est unique pour le Petit Prince, bien qu'elle ressemble aux autres fleurs. Elle est coquette, exigeante, parfois capricieuse, mais elle aime profondément le Petit Prince. À travers elle, il comprend que l’amour est une responsabilité et qu’il faut prendre soin de ceux qu’on aime.",
+        quote: "Tu deviens responsable pour toujours de ce que tu as apprivoisé."
+    },
+    {
+        name: "Le Pilote",
+        description: "Narrateur de l’histoire, c’est un aviateur tombé en panne dans le désert du Sahara. Il y rencontre le Petit Prince et apprend à voir le monde autrement. À travers leurs discussions, il redécouvre son âme d’enfant et la beauté des choses invisibles aux yeux.",
+        quote: "Toutes les grandes personnes ont d’abord été des enfants. Mais peu d’entre elles s’en souviennent."
+    },
+    {
+        name: "Le Mouton",
+        description: "Le Petit Prince demande au Pilote de lui dessiner un mouton. Après plusieurs essais, il finit par lui donner une boîte en lui disant que le mouton est à l’intérieur. Le Petit Prince, satisfait, comprend que l’essentiel ne se limite pas à ce que l’on voit, mais à ce que l’on imagine.",
+        quote: "S’il te plaît… dessine-moi un mouton !"
+    },
+    {
+        name: "Le Renard",
+        description: "Le Renard est un sage professeur pour le Petit Prince. Il lui explique l’importance de l’apprivoisement : créer des liens rend les choses précieuses. Grâce à lui, le Petit Prince comprend que sa Rose est unique parce qu’il l’a aimée et soignée.",
+        quote: "On ne connaît que les choses que l’on apprivoise."
+    },
+    {
+        name: "Le Serpent",
+        description: "Le Serpent est le premier être vivant que le Petit Prince rencontre sur Terre. Il parle par énigmes et évoque un moyen de ‘retourner chez soi’. Sa morsure représente à la fois une fin et un retour à l’essentiel, au-delà du monde visible.",
+        quote: "Je puis t’aider à retourner chez toi..."
+    }
 ];
 
 const Moon = forwardRef(({ onClick }, ref) => {
@@ -302,6 +326,8 @@ export default function App() {
     const [speed, setSpeed] = useState(1);
     const speedRef = useRef(1);
     const moonRef = useRef();
+    const textRef = useRef(null);
+    const timelineRef = useRef(null); // Store timeline reference
 
     const planetRef = useRef();
 
@@ -336,11 +362,76 @@ export default function App() {
             });
     };
 
+    useEffect(() => {
+        const nameElement = textRef.current.querySelector('h2');
+        const descriptionElement = textRef.current.querySelector('p');
+        const quoteElement = textRef.current.querySelector('i');
+
+        const splitText = (element) => {
+            const text = element.textContent;
+            element.innerHTML = '';
+            text.split('').forEach(char => {
+                const span = document.createElement('span');
+                span.textContent = char;
+                span.style.opacity = 0;
+                span.style.display = 'inline-block';
+                span.style.filter = 'blur(6px)';
+                if (char === ' ') {
+                    span.style.marginRight = '0.25em';
+                }
+                element.appendChild(span);
+            });
+        };
+
+        if (timelineRef.current) {
+            timelineRef.current.kill();
+        }
+
+        splitText(nameElement);
+        splitText(descriptionElement);
+        splitText(quoteElement);
+
+        timelineRef.current = gsap.timeline();
+
+        timelineRef.current
+            .to(nameElement.querySelectorAll('span'), {
+                opacity: 1,
+                filter: 'blur(0px)',
+                duration: 0.3,
+                stagger: 0.08,
+                ease: 'power2.out',
+                delay: 0.2,
+            })
+            .to(descriptionElement.querySelectorAll('span'), {
+                opacity: 1,
+                filter: 'blur(0px)',
+                duration: 0.3,
+                stagger: 0.04,
+                ease: 'power2.out',
+                delay: 0.2,
+            }, '-=0.8')
+            .to(quoteElement.querySelectorAll('span'), {
+                opacity: 1,
+                filter: 'blur(0px)',
+                duration: 0.3,
+                stagger: 0.04,
+                ease: 'power2.out',
+                delay: 0.2,
+            }, '-=0.8');
+
+        return () => {
+            if (timelineRef.current) {
+                timelineRef.current.kill();
+            }
+        };
+    }, [textureIndex]);
+
   return (
       <div className="container">
-          <div className="character-info">
+          <div className="character-info" ref={textRef}>
               <h2>{characterTexts[textureIndex].name}</h2>
-              <p>{characterTexts[textureIndex].quote}</p>
+              <p>{characterTexts[textureIndex].description}</p>
+              <p><i>"{characterTexts[textureIndex].quote}"</i></p>
           </div>
           <Canvas camera={{ position: [0, 0, 5] }}>
             <color attach="background" args={['black']} />
