@@ -58,15 +58,22 @@ function Character({ texture, position }) {
     );
 }
 
-function ShootingStar() {
+function ShootingStar({ speed }) {
     const ref = useRef();
     const orbitCenter = [17, 4, -30];
     const orbitRadius = 6;
+    const accumulatedTime = useRef(0);
+    const lastTime = useRef(0);
 
     useFrame((state) => {
-        const t = state.clock.getElapsedTime();
-        const x = orbitCenter[0] + Math.cos(t) * orbitRadius;
-        const z = orbitCenter[2] + Math.sin(t) * orbitRadius;
+        const currentTime = state.clock.getElapsedTime();
+        const delta = currentTime - lastTime.current;
+        lastTime.current = currentTime;
+
+        accumulatedTime.current += delta * speed;
+
+        const x = orbitCenter[0] + Math.cos(accumulatedTime.current) * orbitRadius;
+        const z = orbitCenter[2] + Math.sin(accumulatedTime.current) * orbitRadius;
         const y = orbitCenter[1];
 
         ref.current.position.set(x, y, z);
@@ -227,7 +234,7 @@ function FallingStars({ initialPosition, speed = 1, size = 0.2, angle = Math.PI/
     );
 }
 
-function Planet({ texture, position, size, rotationSpeed, rotationDirection }) {
+function Planet({ texture, position, size, rotationSpeed, rotationDirection, onClick }) {
     const planetTexture = useLoader(TextureLoader, texture);
     const planetRef = useRef();
 
@@ -253,6 +260,10 @@ function Planet({ texture, position, size, rotationSpeed, rotationDirection }) {
             duration: 2,
             ease: "power2.out",
         });
+
+        if (onClick) {
+            onClick();
+        }
     };
 
     return (
@@ -288,7 +299,16 @@ function RotatingStars({ count, speed }) {
 
 export default function App() {
     const [textureIndex, setTextureIndex] = useState(0);
+    const [speed, setSpeed] = useState(1);
+    const speedRef = useRef(1);
     const moonRef = useRef();
+
+    const planetRef = useRef();
+
+    const updateSpeed = (newSpeed) => {
+        speedRef.current = newSpeed;
+        setSpeed(newSpeed);
+    };
 
     const handleMoonClick = () => {
         gsap.to(moonRef.current.rotation, {
@@ -296,9 +316,26 @@ export default function App() {
             duration: 1,
             ease: "power2.inOut",
         });
-
         setTextureIndex((prev) => (prev + 1) % characterTextures.length);
     };
+
+    const handlePlanetClick = () => {
+        gsap.timeline()
+            .to(speedRef, {
+                current: 3,
+                duration: 1.5,
+                ease: "power2.out",
+                onUpdate: () => updateSpeed(speedRef.current)
+            })
+            .to(speedRef, {
+                current: 1,
+                duration: 2,
+                ease: "power2.inOut",
+                onUpdate: () => updateSpeed(speedRef.current),
+                delay: 0.5   // Short pause at max speed
+            });
+    };
+
   return (
       <div className="container">
           <div className="character-info">
@@ -308,7 +345,7 @@ export default function App() {
           <Canvas camera={{ position: [0, 0, 5] }}>
             <color attach="background" args={['black']} />
             <ambientLight intensity={1} />
-            <ShootingStar />
+            <ShootingStar speed={speedRef.current} />
               <FallingStarsRain count={10} />
               <RotatingStars count={2000} speed={0.01} />
             <OrbitControls />
@@ -326,11 +363,13 @@ export default function App() {
               />
 
               <Planet
+                  ref={planetRef}
                   texture="/moon_001_COLOR.jpg"
                   position={[17, 4, -30]}
                   size={4}
                   rotationSpeed={0.01}
                   rotationDirection={1}
+                  onClick={handlePlanetClick}
               />
           </Canvas>
       </div>
