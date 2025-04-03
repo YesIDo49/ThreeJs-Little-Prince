@@ -223,6 +223,7 @@ function Planet({ gltf, position, size, rotationSpeed, rotationDirection, onClic
             duration: 0.3,
             ease: 'power2.out',
         });
+        document.body.style.cursor = hover ? 'pointer' : 'auto';
     };
 
     const handleClick = () => {
