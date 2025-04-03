@@ -12,9 +12,9 @@ const characterModels = [
     { modelPath: '/models/character1.glb', position: [1, -3.4, -2], scale: [10, 10, 10], rotation: [0, 16, 0] },
     { modelPath: '/models/character2.glb', position: [0, -0.5, 0], scale: [3, 3, 3], rotation: [0, -0.5, 0] },
     { modelPath: '/models/character3.glb', position: [0, 0.2, -0.5], scale: [15, 15, 15], rotation: [0, -0.8, 0] },
-    { modelPath: '/models/character4.glb', position: [-0.5, 0.1, -0.5], scale: [0.5, 0.5, 0.5], rotation: [0, 1, 0] },
+    { modelPath: '/models/character4.glb', position: [-0.5, -0.05, 0.1], scale: [0.4, 0.4, 0.4], rotation: [0, 1, 0] },
     { modelPath: '/models/character5.glb', position: [0, -0.5, -0.5], scale: [0.3, 0.3, 0.3], rotation: [0, -0.5, 0] },
-    { modelPath: '/models/character6.glb', position: [0, -0.5, -0.5], scale: [0.15, 0.15, 0.15], rotation: [0, 1.2, 0] },
+    { modelPath: '/models/character6.glb', position: [0, -0.6, 0], scale: [0.15, 0.15, 0.15], rotation: [0, 1.2, 0] },
 ];
 
 const characterTexts = [
@@ -382,7 +382,7 @@ export default function App() {
               <p><i>"{characterTexts[textureIndex].quote}"</i></p>
           </div>
           <Canvas camera={{ position: [0, 0, 5] }}>
-            <color attach="background" args={['black']} />
+            {/*<color attach="background" args={['black']} />*/}
             <ambientLight intensity={1} />
             <ShootingStar speed={speedRef.current} />
               <FallingStarsRain count={10} />
