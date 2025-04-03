@@ -12,7 +12,8 @@ Intéragissez avec les planètes en cliquant dessus pour découvrir les personna
 
 ## Démo Live
 
-Vous pouvez voir la démo en direct ici : [Demo](https://threejs-little-prince.netlify.app/)
+Vous pouvez voir la démo en direct ici : [Demo Vercel](https://three-js-little-prince.vercel.app/)
+ou [Demo Netlify](https://threejs-little-prince.netlify.app/)
 
 ## Stack
 - Three.js : Pour la création de la scène 3D et des objets
