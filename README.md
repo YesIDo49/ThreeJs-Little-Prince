@@ -1,12 +1,30 @@
-# React + Vite
+# Le Petit Prince - Three JS
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Sommaire
+- [Démo Live](#démo-live)
+- [Stack](#stack)
+- [Ressources](#ressources)
+- [Auteur](#auteur)
 
-Currently, two official plugins are available:
+Ce projet est une adaptation du livre "Le Petit Prince" d'Antoine de Saint-Exupéry en utilisant Three.js pour créer une expérience interactive en 3D.
+Vous pourrez découvrir quelques personnages du livre avec leur description et une de leur phrase emblématique.
+Intéragissez avec les planètes en cliquant dessus pour découvrir les personnages et voir les différentes animations.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Démo Live
 
-## Expanding the ESLint configuration
+Vous pouvez voir la démo en direct ici : [Demo](https://threejs-little-prince.netlify.app/)
 
-If you are developing a production application, we recommend using TypeScript and enable type-aware lint rules. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Stack
+- Three.js : Pour la création de la scène 3D et des objets
+- GSAP : Pour les animations
+- React : Pour la gestion de l'interface utilisateur
+- React Three Fiber : Pour intégrer Three.js avec React
+- React Three Drei : Pour des helpers et des composants supplémentaires pour Three.js
+- ViteJS : Pour le bundling et le développement
+
+## Ressources
+- Shooting Stars : [Shooting Stars](https://codesandbox.io/p/sandbox/shootingstar-8k5pli?file=%2Fsrc%2FApp.js%3A14%2C27) de drcmda
+- Modèles 3D : [Sketchfab](https://sketchfab.com/)
+
+## Auteur
+Projet étudiant de Mehdi AL SID CHEIKH
