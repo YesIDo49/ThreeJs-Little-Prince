@@ -8,13 +8,13 @@ import gsap from "gsap";
 import { useMemo } from "react";
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 
-const characterTextures = [
-    "/character1.png",
-    "/character2.png",
-    "/character3.png",
-    "/character4.png",
-    "/character5.png",
-    "/character6.png",
+const characterModels = [
+    { modelPath: '/models/character1.glb', position: [1, -3.4, -2], scale: [10, 10, 10], rotation: [0, 16, 0] },
+    { modelPath: '/models/character2.glb', position: [0, -0.5, 0], scale: [3, 3, 3], rotation: [0, -0.5, 0] },
+    { modelPath: '/models/character5.glb', position: [0, -0.5, -0.5], scale: [0.3, 0.3, 0.3], rotation: [0, -0.5, 0] },
+    { modelPath: '/models/character5.glb', position: [0, -0.5, -0.5], scale: [0.3, 0.3, 0.3], rotation: [0, -0.5, 0] },
+    { modelPath: '/models/character5.glb', position: [0, -0.5, -0.5], scale: [0.3, 0.3, 0.3], rotation: [0, -0.5, 0] },
+    { modelPath: '/models/character5.glb', position: [0, -0.5, -0.5], scale: [0.3, 0.3, 0.3], rotation: [0, -0.5, 0] },
 ];
 
 const characterTexts = [
@@ -65,13 +65,13 @@ const Moon = forwardRef(({ onClick }, ref) => {
 });
 
 
-function Character({ texture, position }) {
-    const spriteMap = useMemo(() => new THREE.TextureLoader().load(texture), [texture]);
+function Character({ modelPath, position, scale, rotation }) {
+    const gltf = useLoader(GLTFLoader, modelPath);
 
     return (
-        <sprite position={position} scale={[1.2, 1.2, 1.2]}>
-            <spriteMaterial attach="material" map={spriteMap} toneMapped={false} />
-        </sprite>
+        <mesh position={position} scale={scale} rotation={rotation}>
+            <primitive object={gltf.scene} />
+        </mesh>
     );
 }
 
@@ -283,7 +283,7 @@ export default function App() {
             duration: 1,
             ease: "power2.inOut",
         });
-        setTextureIndex((prev) => (prev + 1) % characterTextures.length);
+        setTextureIndex((prev) => (prev + 1) % characterModels.length);
     };
 
     const handlePlanetClick = () => {
@@ -392,7 +392,12 @@ export default function App() {
               <Bloom mipmapBlur luminanceThreshold={1} />
             </EffectComposer>
               <Moon ref={moonRef} onClick={handleMoonClick} />
-              <Character texture={characterTextures[textureIndex]} position={[0, -0.5, 1]} />
+              <Character
+                  modelPath={characterModels[textureIndex].modelPath}
+                  position={characterModels[textureIndex].position}
+                  scale={characterModels[textureIndex].scale}
+                  rotation={characterModels[textureIndex].rotation}
+              />
               <Planet
                   modelPath="/models/planet1.glb"
                   position={[-11, 7, -20]}
