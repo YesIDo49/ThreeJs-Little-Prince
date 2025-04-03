@@ -241,7 +241,9 @@ function Planet({ gltf, position, size, rotationSpeed, rotationDirection, onClic
             <primitive object={gltf.scene} />
         </mesh>
     );
-}function RotatingStars({ count, speed }) {
+}
+
+function RotatingStars({ count, speed }) {
     const starsRef = useRef();
 
     useFrame(({ clock }) => {
@@ -264,11 +266,14 @@ function Preloader({ onLoaded }) {
         '/models/planet2.glb',
         ...characterModels.map((char) => char.modelPath),
     ];
-    const [loadedModels, setLoadedModels] = useState(null);
+    const [progress, setProgress] = useState(0);
 
     useEffect(() => {
         const loader = new GLTFLoader();
         const modelMap = {};
+        let loadedCount = 0;
+
+        const totalModels = modelsToLoad.length;
 
         const loadModel = (path) => {
             return new Promise((resolve) => {
@@ -276,32 +281,37 @@ function Preloader({ onLoaded }) {
                     path,
                     (gltf) => {
                         modelMap[path] = gltf;
+                        loadedCount += 1;
+                        setProgress(Math.round((loadedCount / totalModels) * 100));
                         resolve();
                     },
                     undefined,
                     (error) => {
                         console.error(`Error loading ${path}:`, error);
-                        resolve(); // Continue even if one fails
+                        loadedCount += 1;
+                        setProgress(Math.round((loadedCount / totalModels) * 100));
+                        resolve();
                     }
                 );
             });
         };
 
-        Promise.all(modelsToLoad.map(loadModel)).then(() => {
-            setLoadedModels(modelMap);
-            onLoaded(modelMap);
-        }).catch((err) => {
-            console.error('Preloading failed:', err);
-        });
+        Promise.all(modelsToLoad.map(loadModel))
+            .then(() => {
+                onLoaded(modelMap);
+            })
+            .catch((err) => {
+                console.error('Preloading failed:', err);
+                onLoaded(modelMap);
+            });
     }, [onLoaded]);
 
     return (
         <div className="preloader">
-            <p>Loading... {loadedModels ? Math.round((Object.keys(loadedModels).length / modelsToLoad.length) * 100) : 0}%</p>
+            <p>Loading... {progress}%</p>
         </div>
     );
 }
-
 export default function App() {
     const [isLoaded, setIsLoaded] = useState(false);
     const [loadedModels, setLoadedModels] = useState(null);
