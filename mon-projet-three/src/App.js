@@ -65,9 +65,7 @@ const Moon = forwardRef(({ onClick }, ref) => {
 });
 
 
-function Character({ modelPath, position, scale, rotation }) {
-    const gltf = useLoader(GLTFLoader, modelPath);
-
+function Character({ gltf, position, scale, rotation }) {
     return (
         <mesh position={position} scale={scale} rotation={rotation}>
             <primitive object={gltf.scene} />
@@ -200,9 +198,8 @@ function FallingStars({ initialPosition, speed = 1, size = 0.2, angle = Math.PI/
     );
 }
 
-function Planet({ modelPath, position, size, rotationSpeed, rotationDirection, onClick }) {
+function Planet({ gltf, position, size, rotationSpeed, rotationDirection, onClick }) {
     const planetRef = useRef();
-    const gltf = useLoader(GLTFLoader, modelPath);
 
     useFrame(() => {
         if (planetRef.current) {
@@ -244,8 +241,7 @@ function Planet({ modelPath, position, size, rotationSpeed, rotationDirection, o
             <primitive object={gltf.scene} />
         </mesh>
     );
-}
-function RotatingStars({ count, speed }) {
+}function RotatingStars({ count, speed }) {
     const starsRef = useRef();
 
     useFrame(({ clock }) => {
@@ -261,15 +257,60 @@ function RotatingStars({ count, speed }) {
         </group>
     );
 }
+function Preloader({ onLoaded }) {
+    const modelsToLoad = [
+        '/models/moon2.glb',
+        '/models/planet1.glb',
+        '/models/planet2.glb',
+        ...characterModels.map((char) => char.modelPath),
+    ];
+    const [loadedModels, setLoadedModels] = useState(null);
+
+    useEffect(() => {
+        const loader = new GLTFLoader();
+        const modelMap = {};
+
+        const loadModel = (path) => {
+            return new Promise((resolve) => {
+                loader.load(
+                    path,
+                    (gltf) => {
+                        modelMap[path] = gltf;
+                        resolve();
+                    },
+                    undefined,
+                    (error) => {
+                        console.error(`Error loading ${path}:`, error);
+                        resolve(); // Continue even if one fails
+                    }
+                );
+            });
+        };
+
+        Promise.all(modelsToLoad.map(loadModel)).then(() => {
+            setLoadedModels(modelMap);
+            onLoaded(modelMap);
+        }).catch((err) => {
+            console.error('Preloading failed:', err);
+        });
+    }, [onLoaded]);
+
+    return (
+        <div className="preloader">
+            <p>Loading... {loadedModels ? Math.round((Object.keys(loadedModels).length / modelsToLoad.length) * 100) : 0}%</p>
+        </div>
+    );
+}
 
 export default function App() {
+    const [isLoaded, setIsLoaded] = useState(false);
+    const [loadedModels, setLoadedModels] = useState(null);
     const [textureIndex, setTextureIndex] = useState(0);
     const [speed, setSpeed] = useState(1);
     const speedRef = useRef(1);
     const moonRef = useRef();
     const textRef = useRef(null);
-    const timelineRef = useRef(null); // Store timeline reference
-
+    const timelineRef = useRef(null);
     const planetRef = useRef();
 
     const updateSpeed = (newSpeed) => {
@@ -279,9 +320,9 @@ export default function App() {
 
     const handleMoonClick = () => {
         gsap.to(moonRef.current.rotation, {
-            z: "+=0.785", // 45° en radians
+            z: '+=0.785',
             duration: 1,
-            ease: "power2.inOut",
+            ease: 'power2.inOut',
         });
         setTextureIndex((prev) => (prev + 1) % characterModels.length);
     };
@@ -291,19 +332,21 @@ export default function App() {
             .to(speedRef, {
                 current: 3,
                 duration: 1.5,
-                ease: "power2.out",
-                onUpdate: () => updateSpeed(speedRef.current)
+                ease: 'power2.out',
+                onUpdate: () => updateSpeed(speedRef.current),
             })
             .to(speedRef, {
                 current: 1,
                 duration: 2,
-                ease: "power2.inOut",
+                ease: 'power2.inOut',
                 onUpdate: () => updateSpeed(speedRef.current),
-                delay: 0.5   // Short pause at max speed
+                delay: 0.5,
             });
     };
 
     useEffect(() => {
+        if (!isLoaded) return;
+
         const nameElement = textRef.current.querySelector('h2');
         const descriptionElement = textRef.current.querySelector('p');
         const quoteElement = textRef.current.querySelector('i');
@@ -372,49 +415,55 @@ export default function App() {
                 timelineRef.current.kill();
             }
         };
-    }, [textureIndex]);
+    }, [textureIndex, isLoaded]);
 
-  return (
-      <div className="container">
-          <div className="character-info" ref={textRef}>
-              <h2>{characterTexts[textureIndex].name}</h2>
-              <p>{characterTexts[textureIndex].description}</p>
-              <p><i>"{characterTexts[textureIndex].quote}"</i></p>
-          </div>
-          <Canvas camera={{ position: [0, 0, 5] }}>
-            {/*<color attach="background" args={['black']} />*/}
-            <ambientLight intensity={3.5} />
-            <ShootingStar speed={speedRef.current} />
-              <FallingStarsRain count={10} />
-              <RotatingStars count={2000} speed={0.01} />
-            <OrbitControls />
-            <EffectComposer>
-              <Bloom mipmapBlur luminanceThreshold={1} />
-            </EffectComposer>
-              <Moon ref={moonRef} onClick={handleMoonClick} />
-              <Character
-                  modelPath={characterModels[textureIndex].modelPath}
-                  position={characterModels[textureIndex].position}
-                  scale={characterModels[textureIndex].scale}
-                  rotation={characterModels[textureIndex].rotation}
-              />
-              <Planet
-                  modelPath="/models/planet1.glb"
-                  position={[-11, 7, -20]}
-                  size={6}
-                  rotationSpeed={0.003}
-                  rotationDirection={-1}
-              />
-              <Planet
-                  ref={planetRef}
-                  modelPath="/models/planet2.glb"
-                  position={[17, 4, -30]}
-                  size={4}
-                  rotationSpeed={0.01}
-                  rotationDirection={1}
-                  onClick={handlePlanetClick}
-              />
-          </Canvas>
-      </div>
-  )
+    if (!isLoaded) {
+        return <Preloader onLoaded={(models) => {
+            setLoadedModels(models);
+            setIsLoaded(true);
+        }} />;
+    }
+
+    return (
+        <div className="container">
+            <div className="character-info" ref={textRef}>
+                <h2>{characterTexts[textureIndex].name}</h2>
+                <p>{characterTexts[textureIndex].description}</p>
+                <p><i>"{characterTexts[textureIndex].quote}"</i></p>
+            </div>
+            <Canvas camera={{ position: [0, 0, 5] }}>
+                <ambientLight intensity={3.5} />
+                <ShootingStar speed={speedRef.current} />
+                <FallingStarsRain count={10} />
+                <RotatingStars count={2000} speed={0.01} />
+                <OrbitControls />
+                <EffectComposer>
+                    <Bloom mipmapBlur luminanceThreshold={1} />
+                </EffectComposer>
+                <Moon ref={moonRef} onClick={handleMoonClick} />
+                <Character
+                    gltf={loadedModels[characterModels[textureIndex].modelPath]}
+                    position={characterModels[textureIndex].position}
+                    scale={characterModels[textureIndex].scale}
+                    rotation={characterModels[textureIndex].rotation}
+                />
+                <Planet
+                    gltf={loadedModels['/models/planet1.glb']}
+                    position={[-11, 7, -20]}
+                    size={6}
+                    rotationSpeed={0.003}
+                    rotationDirection={-1}
+                />
+                <Planet
+                    ref={planetRef}
+                    gltf={loadedModels['/models/planet2.glb']}
+                    position={[17, 4, -30]}
+                    size={4}
+                    rotationSpeed={0.01}
+                    rotationDirection={1}
+                    onClick={handlePlanetClick}
+                />
+            </Canvas>
+        </div>
+    );
 }
