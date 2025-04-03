@@ -65,9 +65,20 @@ const Moon = forwardRef(({ onClick }, ref) => {
 });
 
 
-function Character({ gltf, position, scale, rotation }) {
+function Character({ gltf, position, scale, rotation, characterRef }) {
+    useEffect(() => {
+        if (characterRef.current) {
+            characterRef.current.traverse((child) => {
+                if (child.isMesh) {
+                    child.material.transparent = true;
+                    child.material.opacity = 1;
+                }
+            });
+        }
+    }, [gltf, characterRef]);
+
     return (
-        <mesh position={position} scale={scale} rotation={rotation}>
+        <mesh ref={characterRef} position={position} scale={scale} rotation={rotation}>
             <primitive object={gltf.scene} />
         </mesh>
     );
@@ -141,7 +152,7 @@ function FallingStars({ initialPosition, speed = 1, size = 0.2, angle = Math.PI/
     const trailRef = useRef();
     const startTime = useRef(0);
     const [hide, setHide] = useState(false);
-    
+
     useFrame((state) => {
         if (startTime.current === 0) {
             startTime.current = state.clock.getElapsedTime();
@@ -169,9 +180,6 @@ function FallingStars({ initialPosition, speed = 1, size = 0.2, angle = Math.PI/
                     initialPosition[1] + Math.random() * 10,
                     initialPosition[2]
                 );
-                // setTimeout(() => {
-                //     setHide(false);
-                // }, 1750);
             }, 50);
 
 
@@ -322,19 +330,11 @@ export default function App() {
     const textRef = useRef(null);
     const timelineRef = useRef(null);
     const planetRef = useRef();
+    const characterRef = useRef()
 
     const updateSpeed = (newSpeed) => {
         speedRef.current = newSpeed;
         setSpeed(newSpeed);
-    };
-
-    const handleMoonClick = () => {
-        gsap.to(moonRef.current.rotation, {
-            z: '+=0.785',
-            duration: 1,
-            ease: 'power2.inOut',
-        });
-        setTextureIndex((prev) => (prev + 1) % characterModels.length);
     };
 
     const handlePlanetClick = () => {
@@ -352,6 +352,44 @@ export default function App() {
                 onUpdate: () => updateSpeed(speedRef.current),
                 delay: 0.5,
             });
+    };
+
+    const handleMoonClick = () => {
+        gsap.to(moonRef.current.rotation, {
+            z: '+=0.785',
+            duration: 1,
+            ease: 'power2.inOut',
+        });
+
+        if (characterRef.current) {
+            gsap.to(characterRef.current, {
+                duration: 0.5,
+                ease: 'power2.inOut',
+                onUpdate: () => {
+                    characterRef.current.traverse((child) => {
+                        if (child.isMesh) {
+                            child.material.opacity = gsap.getProperty(characterRef.current, 'opacity');
+                        }
+                    });
+                },
+                opacity: 0,
+                onComplete: () => {
+                    setTextureIndex((prev) => (prev + 1) % characterModels.length);
+                    gsap.to(characterRef.current, {
+                        duration: 1.5,
+                        ease: 'power2.inOut',
+                        onUpdate: () => {
+                            characterRef.current.traverse((child) => {
+                                if (child.isMesh) {
+                                    child.material.opacity = gsap.getProperty(characterRef.current, 'opacity');
+                                }
+                            });
+                        },
+                        opacity: 1,
+                    });
+                },
+            });
+        }
     };
 
     useEffect(() => {
@@ -456,6 +494,7 @@ export default function App() {
                     position={characterModels[textureIndex].position}
                     scale={characterModels[textureIndex].scale}
                     rotation={characterModels[textureIndex].rotation}
+                    characterRef={characterRef}
                 />
                 <Planet
                     gltf={loadedModels['/models/planet1.glb']}
