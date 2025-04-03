@@ -51,7 +51,7 @@ const characterTexts = [
 ];
 
 const Moon = forwardRef(({ onClick }, ref) => {
-    const { scene } = useGLTF("/models/moon.glb");
+    const { scene } = useGLTF("/models/moon2.glb");
 
     return (
         <primitive
@@ -59,7 +59,7 @@ const Moon = forwardRef(({ onClick }, ref) => {
             object={scene}
             position={[0, -4, -1]}
             onClick={onClick}
-            scale={0.035}
+            scale={6}
         />
     );
 });
@@ -383,7 +383,7 @@ export default function App() {
           </div>
           <Canvas camera={{ position: [0, 0, 5] }}>
             {/*<color attach="background" args={['black']} />*/}
-            <ambientLight intensity={1} />
+            <ambientLight intensity={3.5} />
             <ShootingStar speed={speedRef.current} />
               <FallingStarsRain count={10} />
               <RotatingStars count={2000} speed={0.01} />
