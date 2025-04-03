@@ -3,11 +3,10 @@ import React, {useEffect, useRef, useState} from "react";
 import { Canvas, useFrame, useLoader } from "@react-three/fiber";
 import {Trail, OrbitControls, Stars, useGLTF} from '@react-three/drei'
 import { EffectComposer, Bloom } from '@react-three/postprocessing'
-import { TextureLoader } from "three";
 import { forwardRef } from "react";
 import gsap from "gsap";
 import { useMemo } from "react";
-
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 
 const characterTextures = [
     "/character1.png",
@@ -107,57 +106,6 @@ function ShootingStar({ speed }) {
     );
 }
 
-// function FallingStar() {
-//     const ref = useRef();
-//     const [position, setPosition] = useState({ x: 0, y: 0 });
-//     const [speed, setSpeed] = useState({ x: 0, y: 0 });
-//     const [visible, setVisible] = useState(false);
-//
-//     const resetStar = () => {
-//         setPosition({ x: Math.random() * 20 - 50, y: 40 });
-//         setSpeed({ x: Math.random() * 10 + 15, y: Math.random() * 10 + 15 });
-//         setVisible(true);
-//     };
-//
-//     useEffect(() => {
-//         setTimeout(resetStar, Math.random() * 3000);
-//     }, []);
-//
-//     useFrame(({ clock }) => {
-//         if (!ref.current || !visible) return;
-//
-//         const t = clock.getElapsedTime() % 5;
-//         const x = position.x + speed.x * t;
-//         const y = position.y - speed.y * t;
-//
-//         ref.current.position.set(x, y, -30);
-//
-//         if (y < -40) {
-//             setTimeout(resetStar, Math.random() * 3000 + 1000);
-//         }
-//     });
-//
-//     return visible ? (
-//         <Trail width={3} length={5} color={new THREE.Color(1, 1, 10)} attenuation={(t) => t * t}>
-//             <mesh ref={ref} position={[position.x, position.y, -30]}>
-//                 <sphereGeometry args={[0.2]} />
-//                 <meshBasicMaterial color={[10, 1, 10]} toneMapped={false} />
-//             </mesh>
-//         </Trail>
-//     ) : null;
-// }
-//
-// function FallingStars({ count = 5 }) {
-//     return (
-//         <>
-//             {Array.from({ length: count }).map((_, i) => (
-//                 <FallingStar key={i} />
-//             ))}
-//         </>
-//     );
-// }
-
-
 function FallingStarsRain({ count = 20 }) {
     const stars = useMemo(() => {
         return Array.from({ length: count }, () => {
@@ -252,9 +200,9 @@ function FallingStars({ initialPosition, speed = 1, size = 0.2, angle = Math.PI/
     );
 }
 
-function Planet({ texture, position, size, rotationSpeed, rotationDirection, onClick }) {
-    const planetTexture = useLoader(TextureLoader, texture);
+function Planet({ modelPath, position, size, rotationSpeed, rotationDirection, onClick }) {
     const planetRef = useRef();
+    const gltf = useLoader(GLTFLoader, modelPath);
 
     useFrame(() => {
         if (planetRef.current) {
@@ -264,19 +212,19 @@ function Planet({ texture, position, size, rotationSpeed, rotationDirection, onC
 
     const handleHover = (hover) => {
         gsap.to(planetRef.current.scale, {
-            x: hover ? 1.1 : 1,
-            y: hover ? 1.1 : 1,
-            z: hover ? 1.1 : 1,
+            x: hover ? size * 1.1 : size,
+            y: hover ? size * 1.1 : size,
+            z: hover ? size * 1.1 : size,
             duration: 0.3,
-            ease: "power2.out",
+            ease: 'power2.out',
         });
     };
 
     const handleClick = () => {
         gsap.to(planetRef.current.rotation, {
-            y: planetRef.current.rotation.y + Math.PI * 3,
+            y: planetRef.current.rotation.y + rotationDirection * (Math.PI * 3),
             duration: 2,
-            ease: "power2.out",
+            ease: 'power2.out',
         });
 
         if (onClick) {
@@ -291,13 +239,12 @@ function Planet({ texture, position, size, rotationSpeed, rotationDirection, onC
             onPointerOver={() => handleHover(true)}
             onPointerOut={() => handleHover(false)}
             onClick={handleClick}
+            scale={[size, size, size]}
         >
-            <sphereGeometry args={[size, 32, 32]} />
-            <meshStandardMaterial map={planetTexture} />
+            <primitive object={gltf.scene} />
         </mesh>
     );
 }
-
 function RotatingStars({ count, speed }) {
     const starsRef = useRef();
 
@@ -447,16 +394,15 @@ export default function App() {
               <Moon ref={moonRef} onClick={handleMoonClick} />
               <Character texture={characterTextures[textureIndex]} position={[0, -0.5, 1]} />
               <Planet
-                  texture="/moon_001_COLOR.jpg"
+                  modelPath="/models/planet1.glb"
                   position={[-11, 7, -20]}
                   size={6}
-                  rotationSpeed={0.001}
+                  rotationSpeed={0.003}
                   rotationDirection={-1}
               />
-
               <Planet
                   ref={planetRef}
-                  texture="/moon_001_COLOR.jpg"
+                  modelPath="/models/planet2.glb"
                   position={[17, 4, -30]}
                   size={4}
                   rotationSpeed={0.01}
