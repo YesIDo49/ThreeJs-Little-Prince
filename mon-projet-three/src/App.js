@@ -141,7 +141,7 @@ function FallingStars({ initialPosition, speed = 1, size = 0.2, angle = Math.PI/
     const trailRef = useRef();
     const startTime = useRef(0);
     const [hide, setHide] = useState(false);
-
+    
     useFrame((state) => {
         if (startTime.current === 0) {
             startTime.current = state.clock.getElapsedTime();
@@ -183,13 +183,13 @@ function FallingStars({ initialPosition, speed = 1, size = 0.2, angle = Math.PI/
             ref={trailRef}
             width={size * 12}
             length={5}
-            color={new THREE.Color(2, 1, 10)}
+            color={new THREE.Color(5, 5, 1)}
             attenuation={(t) => hide ? 0 : t * t}
         >
             <mesh ref={ref}>
                 <sphereGeometry args={[size]} />
                 <meshBasicMaterial
-                    color={[10, 1, 10]}
+                    color={[8, 6, 3]}
                     toneMapped={false}
                     opacity={0.8}
                 />
