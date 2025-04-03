@@ -53,6 +53,10 @@ const characterTexts = [
 const Moon = forwardRef(({ onClick }, ref) => {
     const { scene } = useGLTF("/models/moon2.glb");
 
+    const handleHover = (hover) => {
+        document.body.style.cursor = hover ? 'pointer' : 'auto';
+    };
+
     return (
         <primitive
             ref={ref}
@@ -60,6 +64,8 @@ const Moon = forwardRef(({ onClick }, ref) => {
             position={[0, -4, -1]}
             onClick={onClick}
             scale={6}
+            onPointerOver={() => handleHover(true)}
+            onPointerOut={() => handleHover(false)}
         />
     );
 });
