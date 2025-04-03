@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import React, {useEffect, useRef, useState} from "react";
 import { Canvas, useFrame, useLoader } from "@react-three/fiber";
-import { Trail, OrbitControls, Stars } from '@react-three/drei'
+import {Trail, OrbitControls, Stars, useGLTF} from '@react-three/drei'
 import { EffectComposer, Bloom } from '@react-three/postprocessing'
 import { TextureLoader } from "three";
 import { forwardRef } from "react";
@@ -52,22 +52,16 @@ const characterTexts = [
 ];
 
 const Moon = forwardRef(({ onClick }, ref) => {
-    const [colorMap, displacementMap, normalMap] = useLoader(TextureLoader, [
-        "/moon_001_COLOR.jpg",
-        "/moon_001_DISP.png",
-        "/moon_001_NORM.jpg",
-    ]);
+    const { scene } = useGLTF("/models/moon.glb");
 
     return (
-        <mesh ref={ref} position={[0, -4, 0]} onClick={onClick}>
-            <sphereGeometry args={[3, 64, 64]} />
-            <meshStandardMaterial
-                map={colorMap}
-                displacementMap={displacementMap}
-                displacementScale={0.1}
-                normalMap={normalMap}
-            />
-        </mesh>
+        <primitive
+            ref={ref}
+            object={scene}
+            position={[0, -4, -1]}
+            onClick={onClick}
+            scale={0.035}
+        />
     );
 });
 
