@@ -316,7 +316,7 @@ function Preloader({ onLoaded }) {
 
     return (
         <div className="preloader">
-            <p>Loading... {progress}%</p>
+            <p>Chargement... {progress}%</p>
         </div>
     );
 }
@@ -579,7 +579,7 @@ export default function App() {
                 <ShootingStar speed={speedRef.current} />
                 <FallingStarsRain count={10} />
                 <StarsShader count={3000} speed={0.02} />
-                <OrbitControls />
+                {/*<OrbitControls />*/}
                 <EffectComposer>
                     <Bloom mipmapBlur luminanceThreshold={1} />
                 </EffectComposer>
